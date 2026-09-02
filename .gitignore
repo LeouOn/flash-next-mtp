@@ -1,0 +1,30 @@
+# Engine (downloaded by setup.ps1)
+bin/
+*.zip
+*.dll
+*.exe
+*.so
+*.dylib
+
+# Weights (multi-GB; download separately)
+mtp/
+models/
+*.gguf
+*.gguf.*
+
+# Hugging Face cache leftovers
+.cache/
+mtp/.cache/
+
+# Secrets
+.env
+api-key.txt
+*.pem
+*.key
+*.crt
+
+# Runtime
+logs/
+*.log
+.DS_Store
+Thumbs.db
