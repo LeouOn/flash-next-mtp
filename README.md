@@ -22,17 +22,28 @@ dropped. This recipe uses `--fit off` and the self-contained Q8_0 head.
 
 ```powershell
 cd flash-next-mtp
-.\setup.ps1          # engine + MTP sidecar
-.\start.ps1          # listens on 127.0.0.1:8097
+.\setup.ps1              # engine + MTP sidecar (once)
+.\Install-Alias.ps1      # once: adds `flash-next` to your PowerShell profile
+flash-next               # new terminal after that
 ```
 
-Point the client at `http://127.0.0.1:8097/v1` with header:
+Or without the alias: `.\start.ps1`
+
+The process **is** the server. Leave that window open. `/health` returns 200 while it loads; `/v1/models` is **401** until you send the API key. That 401 is why LM Studio/SillyTavern look “dead” after CORS/auth.
+
+Point the client at `http://127.0.0.1:8097/v1` with:
 
 ```
 Authorization: Bearer <contents of api-key.txt>
 ```
 
-`api-key.txt` is created on first start and is gitignored.
+`api-key.txt` is created on first start and is gitignored. For a keyless local client:
+
+```powershell
+flash-next -NoAuth
+```
+
+(still bound to 127.0.0.1). `-WebUi` serves the llama.cpp chat page.
 
 ```powershell
 .\start.ps1 -NMax 2

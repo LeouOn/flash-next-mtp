@@ -6,7 +6,8 @@ param(
     [string] $Cors = '',
     [switch] $NoMtp,
     [switch] $WebUi,
-    [switch] $ListenLan
+    [switch] $ListenLan,
+    [switch] $NoAuth
 )
 
 $ErrorActionPreference = 'Stop'
@@ -73,11 +74,11 @@ if (-not $ApiKey) {
 
 $LogFile = Join-Path $LogDir ("server-{0:yyyyMMdd-HHmmss}.log" -f (Get-Date))
 
-$args = @(
+# Do not name this $args — that is a PowerShell automatic variable.
+$serverArgs = @(
     '-m', $Target,
     '--host', $HostAddr,
     '--port', "$Port",
-    '--api-key', $ApiKey,
     '--cors-origins', $Cors,
     '--no-cors-credentials',
     '-ngl', '99',
@@ -98,13 +99,19 @@ $args = @(
     '--slots',
     '--log-file', $LogFile,
     '--log-timestamps',
-    '--verbosity', '1'
+    '--verbosity', '3'
 )
 
-if ($WebUi) { $args += '--webui' } else { $args += '--no-webui' }
+if ($NoAuth) {
+    Write-Host "auth    OFF (localhost only). Pass -NoAuth to skip the key."
+} else {
+    $serverArgs += @('--api-key', $ApiKey)
+}
+
+if ($WebUi) { $serverArgs += '--webui' } else { $serverArgs += '--no-webui' }
 
 if (-not $NoMtp) {
-    $args += @(
+    $serverArgs += @(
         '-md', $Mtp.FullName,
         '-ngld', '99',
         '--spec-type', 'draft-mtp,ngram-mod',
@@ -119,10 +126,15 @@ Write-Host "target  $Target"
 if (-not $NoMtp) { Write-Host "draft   $($Mtp.FullName)  n-max=$NMax" }
 Write-Host "bind    ${HostAddr}:${Port}  cors=$Cors  webui=$WebUi"
 Write-Host "api     http://127.0.0.1:$Port/v1"
-Write-Host "auth    Authorization: Bearer <api-key.txt>"
-Write-Host "stats   .\stats.ps1   after a generation"
+if (-not $NoAuth) {
+    Write-Host "auth    Authorization: Bearer $ApiKey"
+    Write-Host "        (also in $KeyFile — LM Studio/ST will 401 without this)"
+}
+Write-Host "stats   flash-next-stats   or  .\stats.ps1"
 Write-Host "log     $LogFile"
+Write-Host "health  http://127.0.0.1:$Port/health"
 Write-Host "Draft acceptance prints at the END of each completion (not during stream)."
+Write-Host "Loading ~83 GB. First listen can take a minute. Leave this window open."
 Write-Host ""
 
 if ($HostAddr -eq '0.0.0.0') {
@@ -130,4 +142,4 @@ if ($HostAddr -eq '0.0.0.0') {
 }
 
 Set-Location $BinDir
-& $Server.FullName @args
+& $Server.FullName @serverArgs
