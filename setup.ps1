@@ -56,7 +56,7 @@ print(p)
     Write-Host ("MTP ready: {0:N2} GB" -f ((Get-Item $dest).Length / 1GB))
 }
 
-# Self-contained (has token_embd.weight) — required so --fit can measure the draft.
+# Self-contained (has token_embd.weight) - required so --fit can measure the draft.
 Get-Mtp 'mtp-Qwen3.8-Flash-Next-Q8_0.gguf' 'MTP/mtp-Qwen3.8-Flash-Next-Q8_0.gguf'
 Get-Mtp 'mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf' 'MTP/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf'
 

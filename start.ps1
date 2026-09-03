@@ -1,4 +1,4 @@
-param(
+﻿param(
     [int] $Port = 0,
     [int] $Ctx = 0,
     [int] $NMax = 0,
@@ -74,7 +74,7 @@ if (-not $ApiKey) {
 
 $LogFile = Join-Path $LogDir ("server-{0:yyyyMMdd-HHmmss}.log" -f (Get-Date))
 
-# Do not name this $args — that is a PowerShell automatic variable.
+# Do not name this $args; that is a PowerShell automatic variable.
 $serverArgs = @(
     '-m', $Target,
     '--host', $HostAddr,
@@ -128,7 +128,7 @@ Write-Host "bind    ${HostAddr}:${Port}  cors=$Cors  webui=$WebUi"
 Write-Host "api     http://127.0.0.1:$Port/v1"
 if (-not $NoAuth) {
     Write-Host "auth    Authorization: Bearer $ApiKey"
-    Write-Host "        (also in $KeyFile — LM Studio/ST will 401 without this)"
+    Write-Host "        (also in $KeyFile -- LM Studio/ST will 401 without this)"
 }
 Write-Host "stats   flash-next-stats   or  .\stats.ps1"
 Write-Host "log     $LogFile"
