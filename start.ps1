@@ -64,13 +64,21 @@ if ($env:FLASH_NEXT_MTP -and (Test-Path $env:FLASH_NEXT_MTP)) {
 }
 if (-not $NoMtp -and -not $Mtp) { throw "MTP sidecar missing. Run .\setup.ps1 first." }
 
-$ApiKey = $env:FLASH_NEXT_API_KEY
-if (-not $ApiKey -and (Test-Path $KeyFile)) { $ApiKey = (Get-Content $KeyFile -Raw).Trim() }
-if (-not $ApiKey) {
-    $ApiKey = [guid]::NewGuid().ToString('N')
-    Set-Content -Path $KeyFile -Value $ApiKey -NoNewline
-    Write-Host "wrote new API key to api-key.txt (gitignored)"
+function Get-FlashNextApiKey {
+    $k = $env:FLASH_NEXT_API_KEY
+    if (-not $k -and (Test-Path $KeyFile)) {
+        $k = (Get-Content -LiteralPath $KeyFile -Raw -ErrorAction SilentlyContinue)
+        if ($null -ne $k) { $k = $k.Trim() }
+    }
+    # Reject empty, path-like, or previously corrupted values (e.g. the key file path).
+    if (-not $k -or $k -match '[\\/]' -or $k -match 'api-key\.txt' -or $k.Length -lt 16) {
+        $k = [guid]::NewGuid().ToString('N')
+        Set-Content -LiteralPath $KeyFile -Value $k -NoNewline -Encoding ascii
+        Write-Host "wrote new API key to api-key.txt (gitignored)"
+    }
+    return $k
 }
+$ApiKey = Get-FlashNextApiKey
 
 $LogFile = Join-Path $LogDir ("server-{0:yyyyMMdd-HHmmss}.log" -f (Get-Date))
 
@@ -128,7 +136,7 @@ Write-Host "bind    ${HostAddr}:${Port}  cors=$Cors  webui=$WebUi"
 Write-Host "api     http://127.0.0.1:$Port/v1"
 if (-not $NoAuth) {
     Write-Host "auth    Authorization: Bearer $ApiKey"
-    Write-Host "        (also in $KeyFile -- LM Studio/ST will 401 without this)"
+    Write-Host "        save this; it is also in api-key.txt"
 }
 Write-Host "stats   flash-next-stats   or  .\stats.ps1"
 Write-Host "log     $LogFile"
